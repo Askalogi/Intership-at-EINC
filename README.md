@@ -1,2 +1,2 @@
-# Intership-at-EINC
-All of the project/s that will be implemented will be stored here.
+# FULL_PROJECT
+ this is the full SNN project folder
