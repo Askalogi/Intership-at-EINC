@@ -44,7 +44,7 @@ transform = transforms.Compose(
 
 # create the train/test dataset
 dataset = CustomSinDataset(
-    root="./custom_dataset",
+    root="../custom_dataset",
     transform=transform,
 )
 
