@@ -63,7 +63,7 @@ def sin_distribution(size: int, numbrer_of_peaks: int, orientation: str, noise_l
 
 def create_dataset(num_samples: int, size = 16):
     #index the path to the custom dataset
-    dataset_path = "../custom_dataset"
+    dataset_path = "./custom_dataset"
 
     #empty the last contents of the path so we can reuse this endlessly
     for file in glob.glob(os.path.join(dataset_path, "*.png")):
@@ -71,7 +71,7 @@ def create_dataset(num_samples: int, size = 16):
 
     # create the main loop where we get random peaks, orientation and noise
     for i in range(num_samples):
-        num_peaks = random.randint(1,10) #random amount of peaks
+        num_peaks = random.randint(1,5) #random amount of peaks
         orientation = random.choice(["horizontal", "vertical"]) #random choice between orientations
         noise_lvl = random.randrange(1, 4)/10 #random noise 
         
@@ -90,6 +90,7 @@ def create_dataset(num_samples: int, size = 16):
 #!TESTING THE CREATION OF THE DATASET
 
 create_dataset(1000, 16)
+
 
 
 
