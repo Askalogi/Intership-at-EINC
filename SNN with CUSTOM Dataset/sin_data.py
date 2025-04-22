@@ -77,7 +77,7 @@ def create_dataset(num_samples: int, size = 16):
         orientation = random.choice(["horizontal", "vertical"]) #random choice between orientations
         noise_lvl = random.randrange(1, 4)/10 #random noise 
         
-        #use the function defined above
+        # use the function defined above t
         img = sin_distribution(size=size, numbrer_of_peaks=num_peaks, orientation=orientation, noise_level=noise_lvl)
 
         #label the pictures with 0,1 (hot one encoding)

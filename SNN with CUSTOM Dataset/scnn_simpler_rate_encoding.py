@@ -388,5 +388,4 @@ def membrance_spikes_plot(model, dataset, sample_i, neuron_i: None):
 
 membrance_spikes_plot(model,test_dataset,110,None)
 
-#! display the kernels/filters
 
