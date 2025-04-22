@@ -99,5 +99,5 @@ class CustomSinDataset(Dataset):
 
 # sample_data, sample_label = train_dataset[0]
 # plt.imshow(sample_data[0], cmap="grey")
-print(f"Testing the dataset's size sample {sample_data.size()}")
+# print(f"Testing the dataset's size sample {sample_data.size()}")
 # print(f"this is the label of the image below remember \n 0 = horizontal \n 1 = vertical\n label -> {sample_label}")
