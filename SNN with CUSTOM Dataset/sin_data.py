@@ -65,6 +65,8 @@ def create_dataset(num_samples: int, size = 16):
     #index the path to the custom dataset
     dataset_path = "./custom_dataset"
 
+    #makes sure the directory exists 
+    os.makedirs(dataset_path, exist_ok=True)
     #empty the last contents of the path so we can reuse this endlessly
     for file in glob.glob(os.path.join(dataset_path, "*.png")):
         os.remove(file)

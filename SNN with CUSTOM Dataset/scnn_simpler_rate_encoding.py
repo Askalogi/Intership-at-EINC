@@ -29,7 +29,7 @@ epochs = 10
 prcnt_of_train = 0.7
 batch_size = 30
 learning_rate = 0.01
-num_steps = 320
+num_steps = 300
 v_threshold = torch.tensor([0.8])
 
 #! TRANSFORM
@@ -51,12 +51,6 @@ train_size
 
 train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
-sample_data, sample_label = train_dataset[0]
-sample_label
-sample_data
-plt.title(f"the label is {sample_label}")
-plt.imshow(sample_data[0], cmap="cool")
-print(f"Testing the dataset's size sample {sample_data.size()}")
 
 #! DEFINE THE DATA LOADER
 
@@ -91,12 +85,12 @@ class SimpleSNN(nn.Module):
     def forward(self, x):
         batch_size = x.shape[0]  # current batch size cause [B,C,H,W]
 
-        # I also scaled the input tensor because the original tensor had smaller values 
+        # I also scaled the input tensor because the original tensor had smaller values
         x_encoded = constant_current_lif_encode(
-            x*10, p=norse.LIFParameters(), seq_length=self.num_steps
+            x * 10, p=norse.LIFParameters(), seq_length=self.num_steps
         )  # now the shpae is [time,b,c,h,w]
 
-        # print(x_encoded)
+        # print(f"this is the x_encoded {x_encoded.shape}")
         counter = 0
         mem_state = None
         mem_record = []
@@ -110,18 +104,28 @@ class SimpleSNN(nn.Module):
             flat = pooled.view(batch_size, -1)
             linear_out = self.linear(flat)
             spk, mem_state = self.lif(linear_out, mem_state)
-
-            if step % 20 == 0 :
-                counter +=1
+            if step % 20 == 0:
+                counter += 1
                 # print(f"prints the encoded input every 20 steps {xt} for step{20*counter}")
                 # print(f"This is the spk value {spk_record} for step {counter*20}")
                 # print(f"This is the membrance voltage {mem_state.v} for step {counter*20}")
             spk_record.append(spk)
             mem_record.append(mem_state.v)
 
-        spk_out = torch.stack(spk_record, dim=0).sum(0)
+        # print(f" this is the mem record {len(mem_record)}")
+        #! spk_record and mem_record have the same sized elements
+        # print(f" this is the mem_state.v {mem_record[20].shape}  and the spk is {spk_record[20].shape}")
 
-        return spk_out, mem_record
+        spk_out = torch.stack(spk_record, dim=0).sum(0)
+        # print(f"this is the spk_out {spk_out.shape}")
+        # print(spk_out.shape)
+
+        # print(f'this is the spkout_max {spk_out.max(1)}')
+        # spk_out has [Batch_size, num_classes size]
+        # mem_record is a list and has the lkength of time steps
+    
+
+        return spk_out, mem_record, spk_record
 
 
 #! CREATE THE MODEL
@@ -152,7 +156,7 @@ def train(model, train_loader, optimizer, criterion, num_steps, epochs):
             #     print(f"Input shape: {inputs.shape}, Labels: {labels}")
             #     print(f"Input min: {inputs.min()}, max: {inputs.max()}")
             model.train()
-            spk_out, mem_record = model(inputs)
+            spk_out, mem_record, _ = model(inputs)
 
             loss = torch.zeros((1), device=device)
 
@@ -224,7 +228,7 @@ def test(model, test_loader, num_steps):
             data = data.to(device)
             labels = labels.to(device)
 
-            test_spk, test_mem = model(data)
+            test_spk, test_mem, _ = model(data)
 
             _, predicted = test_spk.max(1)  # we obtain the predicted spike values
 
@@ -256,7 +260,7 @@ def test(model, test_loader, num_steps):
 
     for idx, img in enumerate(imgs_to_plot):
         plt.subplot(rows, columns, idx + 1)
-        plt.imshow(img, cmap="gray")
+        plt.imshow(img, cmap="cool")
         plt.title(
             f"true label : {true_labels[idx]}\n predicted label :{pred_labels[idx]}"
         )
@@ -269,3 +273,120 @@ train(model, train_loader, optimizer, criterion, num_steps, epochs)
 
 #!TEST THE MODEL
 test(model, test_loader, num_steps)
+
+
+#! SAVE/STORE THE MODEL
+torch.save(model.state_dict(), "model.pth")
+
+#! LOAD THE MODEL
+# model.load_state_dict(torch.load("model.pth"))
+
+
+# SAMPLE DATA
+
+sample_data, sample_label = test_dataset[136]
+sample_data.shape  # [C, H, W]
+if sample_label == 1:
+    sample_labelstr = "vertical lines"
+else:
+    sample_labelstr = "horizontal lines"
+
+plt.title(f"The image's label is {sample_label} in binary or {sample_labelstr} ")
+plt.imshow(sample_data[0], cmap="bone")
+
+# sample_data.shape # [1,16,16] so channel and hwieght and width
+# sample_data = sample_data.unsqueeze(0) # we add another dimension
+sample_data.shape  # should be [1,1,16,16]
+
+
+#! DEFINING SOME PLOTS
+def membrance_spikes_plot(model, dataset, sample_i, neuron_i: None):
+    """
+    We are visualizing the membrance potential over time
+    
+    Args:
+        model->: takes the model that we have trained 
+        dataset->: takes the dataset from which we are going to extract sample
+        sample_i->: takes the sample index whcih has the sample picture and label inside
+        neuron_i->: takes the neuron index
+    """
+    data, labels = dataset[sample_i]
+    # data is [1,16,16]
+
+    data = data.unsqueeze(0) #[1,1,16,16]
+
+    model.eval()
+    with torch.no_grad():
+        _, mem_record, spk_record = model(data)
+
+        mem_values =[]
+        for mem in mem_record :
+            mem_values.append(mem.detach().numpy())
+        
+        mem_potentials = np.array(mem_values) #shape should be [num_steps, output neuron]
+
+        # convert spiekes to np arrays 
+        spk_values = []
+        for spk in spk_record :
+            spk_values.append(spk.detach().numpy())
+
+        spikes = np.array(spk_values) #shape shoudlbe the same as above
+
+        mem_potentials = mem_potentials.squeeze(axis=1) #removes teh batch dimension
+        spikes = spikes.squeeze(axis=1) # // 
+
+        #Creating a figure with 3 plots
+        figure = plt.figure(figsize=(15,10))
+
+        if labels == 0 :
+            labelstr = "horizontal lines"
+        else: 
+            labelstr = "vertical lines"
+
+        #first we show the image that was picked
+        ax1 = figure.add_subplot(3,1,1)
+        ax1.imshow(data[0].squeeze().numpy(), cmap="cool")
+        ax1.set_title(f"Input image is class {labels} so it has {labelstr}")
+        ax1.axis("off") #turns off axis since this is an image
+
+        #Membrance voltage plot
+        ax2 = figure.add_subplot(3,1,2)
+        time_steps =np.arange(mem_potentials.shape[0]) #num_steps
+        for i in range(mem_potentials.shape[1]) :
+            ax2.plot(time_steps,mem_potentials[:,i], label=f"Neuron {i}")
+
+        ax2.set_xlabel("Time steps")
+        ax2.set_ylabel("Membrance Voltage ")
+        ax2.set_title("Membrance Voltage Traces")
+        ax2.legend()
+        ax2.grid(True)
+
+
+        #SPike raster plot
+        ax3 = figure.add_subplot(3,1,3)
+
+        #For each neuron we need time setps wheere spike occured \
+        for n_i in range(spikes.shape[1]):
+            spike_times = np.where(spikes[:,n_i] > 0)[0]
+
+            ax3.scatter(spike_times,np.ones_like(spike_times)*n_i
+                        , marker="|",s=100, color=f"C{n_i}", label=f"Neuron {n_i}")
+        
+        ax3.set_xlabel("Time Steps")
+        ax3.set_ylabel("Neuron indix")
+        ax3.set_yticks([0,1])
+        ax3.set_yticklabels(["Neuron 0", "Neuron 1"])
+        ax3.set_title('Spike Raster Plot')
+        ax3.set_xlim(0, spikes.shape[0])
+        ax3.grid(True, axis='x')
+
+        plt.tight_layout()
+        plt.show()
+
+    return print("Spikes shape:", spikes.shape) , print("Total spikes:", np.sum(spikes))
+
+
+membrance_spikes_plot(model,test_dataset,110,None)
+
+#! display the kernels/filters
+
