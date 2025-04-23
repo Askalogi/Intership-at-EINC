@@ -123,7 +123,6 @@ class SimpleSNN(nn.Module):
         # print(f'this is the spkout_max {spk_out.max(1)}')
         # spk_out has [Batch_size, num_classes size]
         # mem_record is a list and has the lkength of time steps
-    
 
         return spk_out, mem_record, spk_record
 
@@ -303,9 +302,9 @@ sample_data.shape  # should be [1,1,16,16]
 def membrance_spikes_plot(model, dataset, sample_i, neuron_i: None):
     """
     We are visualizing the membrance potential over time
-    
+
     Args:
-        model->: takes the model that we have trained 
+        model->: takes the model that we have trained
         dataset->: takes the dataset from which we are going to extract sample
         sample_i->: takes the sample index whcih has the sample picture and label inside
         neuron_i->: takes the neuron index
@@ -313,47 +312,49 @@ def membrance_spikes_plot(model, dataset, sample_i, neuron_i: None):
     data, labels = dataset[sample_i]
     # data is [1,16,16]
 
-    data = data.unsqueeze(0) #[1,1,16,16]
+    data = data.unsqueeze(0)  # [1,1,16,16]
 
     model.eval()
     with torch.no_grad():
         _, mem_record, spk_record = model(data)
 
-        mem_values =[]
-        for mem in mem_record :
+        mem_values = []
+        for mem in mem_record:
             mem_values.append(mem.detach().numpy())
-        
-        mem_potentials = np.array(mem_values) #shape should be [num_steps, output neuron]
 
-        # convert spiekes to np arrays 
+        mem_potentials = np.array(
+            mem_values
+        )  # shape should be [num_steps, output neuron]
+
+        # convert spiekes to np arrays
         spk_values = []
-        for spk in spk_record :
+        for spk in spk_record:
             spk_values.append(spk.detach().numpy())
 
-        spikes = np.array(spk_values) #shape shoudlbe the same as above
+        spikes = np.array(spk_values)  # shape shoudlbe the same as above
 
-        mem_potentials = mem_potentials.squeeze(axis=1) #removes teh batch dimension
-        spikes = spikes.squeeze(axis=1) # // 
+        mem_potentials = mem_potentials.squeeze(axis=1)  # removes teh batch dimension
+        spikes = spikes.squeeze(axis=1)  # //
 
-        #Creating a figure with 3 plots
-        figure = plt.figure(figsize=(15,10))
+        # Creating a figure with 3 plots
+        figure = plt.figure(figsize=(15, 10))
 
-        if labels == 0 :
+        if labels == 0:
             labelstr = "horizontal lines"
-        else: 
+        else:
             labelstr = "vertical lines"
 
-        #first we show the image that was picked
-        ax1 = figure.add_subplot(3,1,1)
+        # first we show the image that was picked
+        ax1 = figure.add_subplot(3, 1, 1)
         ax1.imshow(data[0].squeeze().numpy(), cmap="cool")
         ax1.set_title(f"Input image is class {labels} so it has {labelstr}")
-        ax1.axis("off") #turns off axis since this is an image
+        ax1.axis("off")  # turns off axis since this is an image
 
-        #Membrance voltage plot
-        ax2 = figure.add_subplot(3,1,2)
-        time_steps =np.arange(mem_potentials.shape[0]) #num_steps
-        for i in range(mem_potentials.shape[1]) :
-            ax2.plot(time_steps,mem_potentials[:,i], label=f"Neuron {i}")
+        # Membrance voltage plot
+        ax2 = figure.add_subplot(3, 1, 2)
+        time_steps = np.arange(mem_potentials.shape[0])  # num_steps
+        for i in range(mem_potentials.shape[1]):
+            ax2.plot(time_steps, mem_potentials[:, i], label=f"Neuron {i}")
 
         ax2.set_xlabel("Time steps")
         ax2.set_ylabel("Membrance Voltage ")
@@ -361,31 +362,34 @@ def membrance_spikes_plot(model, dataset, sample_i, neuron_i: None):
         ax2.legend()
         ax2.grid(True)
 
+        # SPike raster plot
+        ax3 = figure.add_subplot(3, 1, 3)
 
-        #SPike raster plot
-        ax3 = figure.add_subplot(3,1,3)
-
-        #For each neuron we need time setps wheere spike occured \
+        # For each neuron we need time setps wheere spike occured \
         for n_i in range(spikes.shape[1]):
-            spike_times = np.where(spikes[:,n_i] > 0)[0]
+            spike_times = np.where(spikes[:, n_i] > 0)[0]
 
-            ax3.scatter(spike_times,np.ones_like(spike_times)*n_i
-                        , marker="|",s=100, color=f"C{n_i}", label=f"Neuron {n_i}")
-        
+            ax3.scatter(
+                spike_times,
+                np.ones_like(spike_times) * n_i,
+                marker="|",
+                s=100,
+                color=f"C{n_i}",
+                label=f"Neuron {n_i}",
+            )
+
         ax3.set_xlabel("Time Steps")
         ax3.set_ylabel("Neuron indix")
-        ax3.set_yticks([0,1])
+        ax3.set_yticks([0, 1])
         ax3.set_yticklabels(["Neuron 0", "Neuron 1"])
-        ax3.set_title('Spike Raster Plot')
+        ax3.set_title("Spike Raster Plot")
         ax3.set_xlim(0, spikes.shape[0])
-        ax3.grid(True, axis='x')
+        ax3.grid(True, axis="x")
 
         plt.tight_layout()
         plt.show()
 
-    return print("Spikes shape:", spikes.shape) , print("Total spikes:", np.sum(spikes))
+    return print("Spikes shape:", spikes.shape), print("Total spikes:", np.sum(spikes))
 
 
-membrance_spikes_plot(model,test_dataset,110,None)
-
-
+membrance_spikes_plot(model, test_dataset, 110, None)
