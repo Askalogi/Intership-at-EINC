@@ -6,6 +6,7 @@ import torchvision.transforms as transforms
 import torch.nn as nn
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 from class_dataset import CustomSinDataset
 import torch.utils.data.dataloader
 from norse.torch.functional.encode import constant_current_lif_encode  # rate encoding
@@ -79,8 +80,9 @@ class LI2Model(nn.Module):
     def forward(self, x):
         batch_size = x.shape[0]  # [B,C,H,W]
         x_encoded = constant_current_lif_encode(
-            x * 10, p=norse.LIFParameters(), seq_length=self.num_steps
+            x * 6, p=norse.LIFParameters(v_reset=-1000), seq_length=self.num_steps
         )
+
         input_spikes = x_encoded.detach().to(device)
 
         # print(f"This is the x_encoded {x_encoded}")
@@ -112,11 +114,14 @@ class LI2Model(nn.Module):
             mem_record.append(out_li)
             spk_record.append(spk)
 
+        # the spk.shape is [20,2,13,13] with a length spk record of 50
+        # out_spike_tensor = torch.stack(spk_record)
+        # print(out_spike_tensor)
         # Stacked all time steps in one tensor with shape [num_steps,batch_size, num_classes]
         mem_stack = torch.stack(mem_record, dim=0)
+        # print(mem_stack.shape)
         # average accross time
         final_output = torch.mean(mem_stack, dim=0)
-
         return final_output, spk_record, mem_record, input_spikes
 
 
@@ -148,7 +153,7 @@ def train(model, train_loader, optimizer, criterion, num_steps, epochs):
 
             # always setthis setting while inside the train function
             model.train()
-            final_output, spk_record, mem_record, _ = model(inputs)
+            final_output, spk_record, mem_record, input_spikes = model(inputs)
             # print(f"SPIKES ? {spk_record}")
             # print(f"This is the mem record so we have {mem_record}")
             # print(f"this is the final output variable that the forward method gives {final_output}")
@@ -159,7 +164,7 @@ def train(model, train_loader, optimizer, criterion, num_steps, epochs):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            print(loss)
+            # print(loss)
 
             preds = final_output.argmax(dim=1)
             acc = (preds == labels).float().mean() * 100
@@ -217,7 +222,7 @@ def test(model, test_loader, num_steps):
             data = data.to(device)
             labels = labels.to(device)
 
-            final_output, spk_record, mem_record, _ = model(data)
+            final_output, spk_record, mem_record, input_spikes = model(data)
 
             predicted = final_output.argmax(dim=1)
 
@@ -243,7 +248,6 @@ def test(model, test_loader, num_steps):
     rows = round((num_images + columns) // columns)
 
     plt.figure(figsize=(15, rows * 3))
-    plt.title("These are some samples that were tested in the test function")
     for idx, img in enumerate(imgs_to_plot):
         plt.subplot(rows, columns, idx + 1)
         plt.imshow(img, cmap="cool")
@@ -253,8 +257,10 @@ def test(model, test_loader, num_steps):
     plt.tight_layout()
     plt.show()
 
+    # plotting extra stuff inside the testing function
 
-def model_plots(input_img, input_spikes, lif_spikes, mem_record, example,pred_label):
+
+def model_plots(model, dataset, img_idx):
     """
     Visualizing 3 different plots :
     1. Plots the input image
@@ -264,26 +270,80 @@ def model_plots(input_img, input_spikes, lif_spikes, mem_record, example,pred_la
 
     Args are self explanatory. (i think :))
     """
-    
-    if pred_label == 0:
-        predstr = "Horizontal Lines"
-    else:
-        predstr = "Vertical Lines"
+    # Locate the img inside the dataloader with the batch size
+    # vbatch_size = dataloader.batch_size  # we take the batch size
+    # batch_idx = img_idx // batch_size  # locate at what batch we are examining
+    # img_in_batch_idx = img_idx % batch_size  # th actual image index inside the batch
+    input_img, true_label = dataset[img_idx]
+    input_tensor = input_img.unsqueeze(0)
+    print(input_img.shape)
+    print(input_tensor.shape)
+    final_output, spk_record, mem_record, input_spikes = model(input_tensor)
+    """ for i, (inputs, labels) in enumerate(dataloader):
+        if i == batch_idx:
+            input_img = inputs[img_in_batch_idx]
+            true_label = labels[img_in_batch_idx]
+            input_tensor = inputs[img_in_batch_idx].unsqueeze(0)
+            final_output, spk_record, mem_record, input_spikes = model(input_tensor)
+            pred_label = final_output.argmax(dim=1).item() """
 
-
-    plt.figure(figsize=(6,24))
-
-    #Plot the original image 
-    plt.subplot(4,1,1)
-
-    plt.imshow(input_img.squeeze().numpy(), cmap="cool")
-    plt.title(f"This is a test image with predicted label {pred_label} \nOr you could say that you have {predstr}")
+    #! Plot the original image (1)
+    plt.figure(figsize=(12, 6))
+    plt.imshow(input_img.squeeze(0).numpy(), cmap="cool")
+    plt.title("This is a test image")
     plt.colorbar()
+    plt.tight_layout()
+    plt.show()
 
-    #Plot the input spikes 
-    plt.
+    #! plot the input spikes (2)
+    plt.figure(figsize=(12, 6))
+    # print(input_spikes.shape)
+    T = input_spikes.shape[0]
+
+    events = input_spikes.reshape(-1, 16 * 16).nonzero()
+    # print(events.shape)
+
+    # spikes_frame = input_spikes[t, 0, 0].detach().cpu().numpy()
+    plt.scatter(events[:, 0], events[:, 1])
+    plt.title("Input Spikes at Time Step")
+    # plt.(label="Spike (0 or 1)")
+    plt.axis("off")
+    plt.pause(0.1)
+    plt.clf()
+
+    #! plot the output spikes after the lif (3)
+    """ out_spike_tensor = torch.stack(spk_record)  # [50,20,2,13,13] the size
+    C = out_spike_tensor.shape[2]  # Number of channels or output neurons
+    out_tensors = out_spike_tensor.squeeze(1)
+    out_spike_tensor """
+
+    out_spike_tensor = torch.stack(spk_record)
+    # print(out_spike_tensor.shape)
+    events = out_spike_tensor.reshape(-1, 2 * 13 * 13).nonzero()
+    # print(events.shape)
+
+    plt.scatter(events[:, 0], events[:, 1])
+    plt.title("Hidden Spikes at Time Step")
+    # plt.(label="Spike (0 or 1)")
+    # plt.axis("off")
+    # plt.pause(0.1)
+    # plt.clf()
+    plt.ylim(0, 2 * 13 * 13)
+    plt.xlim(0, 50)
+
+    plt.figure(figsize=(12, 6))
+    y_out = torch.stack(mem_record).detach().cpu().numpy()
+    print(y_out.shape)
+    plt.plot(y_out[:, 0])
+    plt.title(f"Output traces")
+    plt.show()
+
+    #! plot the membrance voltage after the last layer (4)
 
 
 train(model, train_loader, optimizer, criterion, num_steps, epochs)
 
 test(model, test_loader, num_steps)
+
+model_plots(model=model, dataset=test_dataset, img_idx=16)
+
