@@ -55,7 +55,7 @@ def sin_distribution(size: int, numbrer_of_peaks: int, orientation: str, noise_l
     return Image.fromarray(final)
     # return Image.fromarray(final)
 
-
+sin_distribution(16,4,"horizontal",0.3)
 #ΤODO We need to export and save the dataset 
 #TODO also we need to have the dataset be dynamic so we can change the ammount of pictures we are saving
 #TODO while also having them be equal number of horizontal and vertical line images

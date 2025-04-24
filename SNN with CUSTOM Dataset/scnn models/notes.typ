@@ -25,9 +25,13 @@ _*$1^o$ We get random accuracy which upon printing the test images from batches 
 _*$2^o$ for 50 time steps*_ 
 - #emph(text(green)[Just switched the time steps from _300_ to _50_ and also changed the learning rate to _0.008_]) #highlight(fill:gradient.linear(silver, aqua))[SOLVED]
 
-== #emph(text(red)[3rd Problem :]) 
+== #emph(text(red)[3rd Problem :]) #highlight(fill:gradient.linear(silver, aqua))[SOLVED by elias]
 _*$3^o$ le plots to be made are \
 a) Input spikes\
 b) Output Spikes after LIF \ 
 c) Membrance traces after the final LI layer *_ 
-- Plots
+- Plots #highlight(fill:gradient.linear(silver, aqua))[SOLVED by elias]
+
+== #emph(text(red)[4th Problem :])
+_*$4^o$ better test images with noise *_\
+- Creating a new dataset with patches of symmetrical stripes inside 16x16 pixels with noise.

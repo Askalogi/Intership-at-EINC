@@ -346,4 +346,3 @@ train(model, train_loader, optimizer, criterion, num_steps, epochs)
 test(model, test_loader, num_steps)
 
 model_plots(model=model, dataset=test_dataset, img_idx=16)
-
