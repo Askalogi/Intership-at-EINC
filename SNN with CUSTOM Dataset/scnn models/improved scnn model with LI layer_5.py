@@ -24,7 +24,7 @@ num_classes = 2
 num_steps = 50
 epochs = 10
 batch_size = 20
-learning_rate = 0.008
+learning_rate = 0.01
 prcnt_of_train = 0.7
 
 #!TRANSFORM
@@ -121,6 +121,8 @@ class LI2Model(nn.Module):
         mem_stack = torch.stack(mem_record, dim=0)
         # print(mem_stack.shape)
         # average accross time
+        # print(spk)
+        # print("Conv output:", convout.abs().mean().item())
         final_output = torch.mean(mem_stack, dim=0)
         return final_output, spk_record, mem_record, input_spikes
 
@@ -345,4 +347,4 @@ train(model, train_loader, optimizer, criterion, num_steps, epochs)
 
 test(model, test_loader, num_steps)
 
-model_plots(model=model, dataset=test_dataset, img_idx=16)
+model_plots(model=model, dataset=test_dataset, img_idx=1)
