@@ -52,10 +52,16 @@ def sin_distribution(size: int, numbrer_of_peaks: int, orientation: str, noise_l
     # greyscale this to 8 bits
     final = (final/10.0 * 255.0).astype(np.uint8)
 
-    return Image.fromarray(final)
+    # return Image.fromarray(final)
+    return final
     # return Image.fromarray(final)
 
-sin_distribution(16,4,"horizontal",0.3)
+a1 = sin_distribution(16,4,"horizontal",0.3)
+
+plt.figure(figsize=(10, 10))
+plt.imshow(a1, cmap="BuPu", interpolation="nearest")
+plt.title("Testing Noisy image with customated stripes and noise" )
+plt.show()
 #ΤODO We need to export and save the dataset 
 #TODO also we need to have the dataset be dynamic so we can change the ammount of pictures we are saving
 #TODO while also having them be equal number of horizontal and vertical line images
