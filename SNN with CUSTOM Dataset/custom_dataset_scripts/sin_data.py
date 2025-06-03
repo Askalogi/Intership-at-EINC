@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import make_interp_spline
 from scipy.ndimage import gaussian_filter, zoom, median_filter
 import pandas as pd 
+import torch
+from torchvision.transforms import functional as TF
 import os 
 import glob
 
@@ -52,11 +54,14 @@ def sin_distribution(size: int, numbrer_of_peaks: int, orientation: str, noise_l
     # greyscale this to 8 bits
     final = (final/10.0 * 255.0).astype(np.uint8)
 
-    # return Image.fromarray(final)
+    return Image.fromarray(final)
     return final
+    # return torch.from_numpy(final)
     # return Image.fromarray(final)
 
-a1 = sin_distribution(16,4,"horizontal",0.3)
+a1 = sin_distribution(16,2,"horizontal",0.3)
+
+a1.show()
 
 plt.figure(figsize=(10, 10))
 plt.imshow(a1, cmap="BuPu", interpolation="nearest")

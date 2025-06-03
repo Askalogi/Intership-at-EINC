@@ -1,6 +1,6 @@
 = NOTES REGARDING THE _"improved scnn model with LI layer"_
-== #emph(text(red)[1st Problem :]) #highlight(fill:gradient.linear(silver, aqua))[SOLVED] 
-_*$1^o$ We get random accuracy which upon printing the test images from batches we see that all predicted labels are 1.*_ 
+== #emph(text(red)[1st Problem :]) #highlight(fill: gradient.linear(silver, aqua))[SOLVED]
+_*$1^o$ We get random accuracy which upon printing the test images from batches we see that all predicted labels are 1.*_
 \
 
 - Tried to scale the encoded values x*10 inside the forward function BUT the values flactuate between 0.01 and 0.3 at best, might have to upscale this further. After training now we get all 0 labels.
@@ -19,19 +19,32 @@ _*$1^o$ We get random accuracy which upon printing the test images from batches 
 
 - Checking for input spikes. WE HAVE A LOT at x*50 but at just x we get nada.
 
-- #emph(text(green)[Changed the learning rate back to 0.005,and value x*10 and the model now converges casue the input spikes are ideal and we reach _*100%*_]) #highlight(fill:gradient.linear(silver, aqua))[SOLVED]
+- #emph(
+    text(green)[Changed the learning rate back to 0.005,and value x*10 and the model now converges casue the input spikes are ideal and we reach _*100%*_],
+  ) #highlight(fill: gradient.linear(silver, aqua))[SOLVED]
 
-== #emph(text(red)[2nd Problem :]) #highlight(fill:gradient.linear(silver, aqua))[SOLVED]
-_*$2^o$ for 50 time steps*_ 
-- #emph(text(green)[Just switched the time steps from _300_ to _50_ and also changed the learning rate to _0.008_]) #highlight(fill:gradient.linear(silver, aqua))[SOLVED]
+== #emph(text(red)[2nd Problem :]) #highlight(fill: gradient.linear(silver, aqua))[SOLVED]
+_*$2^o$ for 50 time steps*_
+- #emph(
+    text(green)[Just switched the time steps from _300_ to _50_ and also changed the learning rate to _0.008_],
+  ) #highlight(fill: gradient.linear(silver, aqua))[SOLVED]
 
-== #emph(text(red)[3rd Problem :]) #highlight(fill:gradient.linear(silver, aqua))[SOLVED by elias]
+== #emph(text(red)[3rd Problem :]) #highlight(fill: gradient.linear(silver, aqua))[SOLVED by elias]
 _*$3^o$ le plots to be made are \
 a) Input spikes\
-b) Output Spikes after LIF \ 
-c) Membrance traces after the final LI layer *_ 
-- Plots #highlight(fill:gradient.linear(silver, aqua))[SOLVED by elias]
+b) Output Spikes after LIF \
+c) Membrance traces after the final LI layer
+*_
+- Plots #highlight(fill: gradient.linear(silver, aqua))[SOLVED by elias]
 
-== #emph(text(red)[4th Problem :])
+== #emph(text(red)[4th Problem :]) #highlight(fill: gradient.linear(silver, aqua))[SOLVED]
 _*$4^o$ better test images with noise *_\
 - Creating a new dataset with patches of symmetrical stripes inside 16x16 pixels with noise.
+
+== #emph(text(red)[5th Problem :])
+_*IMPLEMENTING ON HARDWARE*_
+- ROADMAP :
+  - Paste it into my cluster .
+  - Run it .
+  - Try to implement the other stuff that the people wehre using it will probably break a lot.
+  - Rinse and repeat until successful.

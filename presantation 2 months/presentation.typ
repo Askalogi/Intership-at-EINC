@@ -153,6 +153,8 @@ And the new simpler and time encoded model looks something like this :
 == Models 
 4. Fourth model is almost identical to the previous one with the only difference being the encoding.
 \
+#underline(raw("from " + "norse.torch.functional.encode " + "import constant_current_lif_encode"))\
+\
 In order to rate this model, the class was decided with  highest spike count per sample.*_ #highlight("highest spike count per sample", fill: rgb("#811aff8a"))_* in the output layer.
 
 Here an accuracy of $~$98 % was achieved not like the 100% convergance but still very good :
@@ -242,6 +244,20 @@ The network fully converges at around epoch 9 meaning we get $~100%$ accuracy on
     ), caption: "Test image with a harder version "
   )
 ]
+== Comments 
+#columns-content()[
+  #figure(
+    image("images/code7/code7_im1.png"), caption : "Test image of the easier version"
+  )
+][#figure(
+    image("images/code7/code7_im2.png"), caption : "Input spikes over time")]
+== Comments 
+#columns-content()[
+  #figure(
+    image("images/code7/code7_im3.png"), caption : "Hidden Spikes"
+  )
+][#figure(
+    image("images/code7/code7_im4.png"), caption : "Membrance Voltage traces in the 2 neurons")]
 
 = Looking forward
 

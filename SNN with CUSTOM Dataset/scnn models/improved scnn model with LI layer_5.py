@@ -4,7 +4,6 @@ import torch
 import torch.optim.adam
 import torchvision.transforms as transforms
 import torch.nn as nn
-import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from class_dataset import CustomSinDataset
@@ -102,6 +101,8 @@ class LI2Model(nn.Module):
             convout = self.conv(x_curr)
             # lif layer
             spk, mem = self.lif(convout, mem)
+            print(spk)
+            print(f"This is the spk shape{spk.shape}")
             # pooling layer
             pooled_mem = self.pool(spk)
             # flattening
@@ -281,6 +282,7 @@ def model_plots(model, dataset, img_idx):
     print(input_img.shape)
     print(input_tensor.shape)
     final_output, spk_record, mem_record, input_spikes = model(input_tensor)
+
     """ for i, (inputs, labels) in enumerate(dataloader):
         if i == batch_idx:
             input_img = inputs[img_in_batch_idx]
